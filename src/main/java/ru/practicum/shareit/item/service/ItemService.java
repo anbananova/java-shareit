@@ -18,5 +18,7 @@ public interface ItemService {
 
     List<ItemDto> searchItems(String text);
 
+    void checkValidation(Long userId, Item item, boolean checkEmpty);
+
     void checkValidation(Long userId);
 }

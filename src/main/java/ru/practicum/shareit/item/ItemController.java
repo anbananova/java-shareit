@@ -30,7 +30,7 @@ public class ItemController {
 
     @PatchMapping("/{itemId}")
     public ItemDto updateItem(@PathVariable Long itemId,
-                              @RequestBody Item item,
+                              @Valid @RequestBody Item item,
                               @RequestHeader("X-Sharer-User-Id") Long userId) {
         log.info("Получен PATCH запрос на обновление вещи пользователем: {}. Было:\n{}\n Стало:\n {}",
                 userId, itemService.getItemById(itemId, userId), item);

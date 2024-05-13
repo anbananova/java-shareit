@@ -41,7 +41,7 @@ public class UserServiceImplTest {
         User user2 = makeUserWithoutId();
 
         ConflictException exception = assertThrows(ConflictException.class,
-                () -> userService.checkValidation(user2), "Исключение не выброшено");
+                () -> userService.checkValidation(user2, false), "Исключение не выброшено");
         assertEquals("Email пользователя не может повторяться.", exception.getMessage());
     }
 

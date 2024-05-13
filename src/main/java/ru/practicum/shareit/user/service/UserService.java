@@ -16,5 +16,5 @@ public interface UserService {
 
     List<UserDto> getAllUsers();
 
-    void checkValidation(User user);
+    void checkValidation(User user, boolean emailNull);
 }

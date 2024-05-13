@@ -30,7 +30,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto addItem(Item item, Long userId) {
-        checkValidation(userId);
+        checkValidation(userId, item, true);
         return ItemMapper.toItemDto(itemStorage.addItem(item, userId));
     }
 
@@ -71,6 +71,20 @@ public class ItemServiceImpl implements ItemService {
                     .map(ItemMapper::toItemDto)
                     .collect(Collectors.toList());
         }
+    }
+
+    @Override
+    public void checkValidation(Long userId, Item item, boolean checkEmpty) {
+        if (checkEmpty && ((item.getName() == null || item.getName().isEmpty())
+                || (item.getDescription() == null || item.getDescription().isEmpty())
+                || item.getAvailable() == null)) {
+            throw new ValidationException("Поля Item не заполнены.");
+        }
+
+        if (userId == null) {
+            throw new ValidationException("Пользователь пустой.");
+        }
+        userStorage.getUserById(userId);
     }
 
     @Override

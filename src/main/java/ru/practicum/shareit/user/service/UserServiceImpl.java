@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exceptions.ConflictException;
+import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.model.User;
@@ -27,14 +28,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto addUser(User user) {
-        checkValidation(user);
+        checkValidation(user, false);
         return UserMapper.toUserDto(userStorage.addUser(user));
     }
 
     @Override
     public UserDto updateUser(Long userId, User user) {
         user.setId(userId);
-        checkValidation(user);
+        checkValidation(user, true);
         return UserMapper.toUserDto(userStorage.updateUser(user));
     }
 
@@ -57,7 +58,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void checkValidation(User user) {
+    public void checkValidation(User user, boolean emailNull) {
+        if (!emailNull && user.getEmail() == null) {
+            throw new ValidationException("Email пользователя не может быть пустым");
+        }
+
         List<UserDto> usersSameEmail = getAllUsers().stream()
                 .filter(u -> u.getEmail().equals(user.getEmail()) && !Objects.equals(u.getId(), user.getId()))
                 .collect(Collectors.toList());

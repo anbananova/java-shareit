@@ -32,7 +32,7 @@ public class ItemServiceImplTest {
         user = makeUserWithoutId();
         user.setId(userStorage.addUser(user).getId());
 
-        this.itemService = new ItemServiceImpl(itemStorage, userStorage);
+        //this.itemService = new ItemServiceImpl(itemStorage, userStorage);
     }
 
     private User makeUserWithoutId() {

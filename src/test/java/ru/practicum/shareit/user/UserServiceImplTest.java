@@ -8,8 +8,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import ru.practicum.shareit.exceptions.ConflictException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
-import ru.practicum.shareit.user.service.UserServiceImpl;
 import ru.practicum.shareit.user.storage.UserInMemoryStorage;
+import ru.practicum.shareit.user.storage.UserRepository;
 import ru.practicum.shareit.user.storage.UserStorage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,12 +18,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @SpringBootTest
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class UserServiceImplTest {
-    private UserService userService;
+    private UserService userService = null;
 
     @BeforeEach
     public void newUserService() {
         UserStorage userStorage = new UserInMemoryStorage();
-        this.userService = new UserServiceImpl(userStorage);
+        UserRepository userRepository;
+        //this.userService = new UserServiceImpl(userRepository);
     }
 
     private User makeUserWithoutId() {

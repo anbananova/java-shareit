@@ -3,7 +3,10 @@ package ru.practicum.shareit.item;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.CommentDtoPartial;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemDtoExtra;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 
@@ -38,14 +41,14 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ItemDto getItemById(@PathVariable Long itemId,
-                               @RequestHeader("X-Sharer-User-Id") Long userId) {
+    public ItemDtoExtra getItemById(@PathVariable Long itemId,
+                                    @RequestHeader("X-Sharer-User-Id") Long userId) {
         log.info("Получен GET запрос на нахождение вещи по ID: {}", itemId);
-        return itemService.getItemById(itemId);
+        return itemService.getItemById(itemId, userId);
     }
 
     @GetMapping
-    public List<ItemDto> getItems(@RequestHeader("X-Sharer-User-Id") Long userId) {
+    public List<ItemDtoExtra> getItems(@RequestHeader("X-Sharer-User-Id") Long userId) {
         log.info("Получен GET запрос на нахождение всех вещей пользователя: {}.", userId);
         return itemService.getAllItems(userId);
     }
@@ -54,5 +57,13 @@ public class ItemController {
     public List<ItemDto> searchItems(@RequestParam(defaultValue = "") String text) {
         log.info("Получен GET запрос на поиск всех вещей с текстом: {}.", text);
         return itemService.searchItems(text);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto addComment(@PathVariable Long itemId,
+                                 @RequestHeader("X-Sharer-User-Id") Long userId,
+                                 @RequestBody @Valid CommentDtoPartial comment) {
+        log.info("Получен POST запрос на добавление комментария к вещи: {}, пользователем: {}, текст комментария: {}.", itemId, userId, comment);
+        return itemService.addComment(itemId, userId, comment);
     }
 }

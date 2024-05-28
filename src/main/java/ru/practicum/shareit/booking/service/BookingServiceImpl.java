@@ -87,6 +87,7 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toBookingDto(bookingUpd);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public BookingDto getBookingById(Long bookingId, Long userId) {
         userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден."));
@@ -101,16 +102,13 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toBookingDto(booking);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public BookingDto getBookingById(Long bookingId) {
         return BookingMapper.toBookingDto(bookingRepository.findById(bookingId).orElseThrow(() -> new NotFoundException("Бронирование не найдено.")));
     }
 
-    @Override
-    public List<BookingDto> getAllBookings(Long userId) {
-        return null;
-    }
-
+    @Transactional(readOnly = true)
     @Override
     public List<BookingDto> getAllBookings(Long userId, String state) {
         userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден."));
@@ -150,6 +148,7 @@ public class BookingServiceImpl implements BookingService {
         return bookings.stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<BookingDto> getAllBookingsOwner(Long userId, String state) {
         userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден."));

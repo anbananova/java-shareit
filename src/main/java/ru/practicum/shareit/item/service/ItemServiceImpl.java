@@ -51,6 +51,7 @@ public class ItemServiceImpl implements ItemService {
         return ItemMapper.toItemDto(itemDb);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public ItemDtoExtra getItemById(Long itemId, Long userId) {
         userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден."));
@@ -89,6 +90,7 @@ public class ItemServiceImpl implements ItemService {
         return ItemMapper.toItemDto(itemUpd);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<ItemDtoExtra> getAllItems(Long userId) {
         checkValidation(userId);

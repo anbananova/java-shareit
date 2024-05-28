@@ -65,12 +65,14 @@ public class UserServiceImpl implements UserService {
         return UserMapper.toUserDto(user);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public UserDto getUserById(Long userId) {
         return UserMapper.toUserDto(userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден.")));
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<UserDto> getAllUsers() {
         return userRepository.findAll()

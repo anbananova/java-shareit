@@ -2,14 +2,15 @@ package ru.practicum.shareit.user.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exceptions.ConflictException;
+import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.storage.UserStorage;
+import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.util.List;
 import java.util.Objects;
@@ -18,40 +19,63 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class UserServiceImpl implements UserService {
-    private final UserStorage userStorage;
+    private final UserRepository userRepository;
 
     @Autowired
-    public UserServiceImpl(@Qualifier("userInMemoryStorage") UserStorage userStorage) {
-        this.userStorage = userStorage;
+    public UserServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
 
+    @Transactional
     @Override
     public UserDto addUser(User user) {
         checkValidation(user, false);
-        return UserMapper.toUserDto(userStorage.addUser(user));
+        User userDb = userRepository.save(user);
+        checkEmail(user);
+        log.info("Пользователь добавлен в базу данных в таблицу users по ID: {} \n {}", userDb.getId(), userDb);
+        return UserMapper.toUserDto(userDb);
     }
 
+    @Transactional
     @Override
     public UserDto updateUser(Long userId, User user) {
         user.setId(userId);
         checkValidation(user, true);
-        return UserMapper.toUserDto(userStorage.updateUser(user));
+        checkEmail(user);
+        User userOld = userRepository.findById(userId).orElseThrow();
+        if (user.getName() != null) {
+            userOld.setName(user.getName());
+        }
+        if (user.getEmail() != null) {
+            userOld.setEmail(user.getEmail());
+        }
+
+        User userUpd = userRepository.save(userOld);
+        log.info("Пользователь обновлен в базе данных в таблице users по ID: {} \n {}", userId, userUpd);
+        return UserMapper.toUserDto(userUpd);
     }
 
+    @Transactional
     @Override
     public UserDto deleteUser(Long userId) {
-        return UserMapper.toUserDto(userStorage.deleteUser(userStorage.getUserById(userId).orElse(null)));
+        User user = userRepository.findById(userId).orElse(null);
+        userRepository.deleteById(userId);
+        log.info("Пользователь удален из базы данных из таблице users по ID: {} \n {}", userId, user);
+        return UserMapper.toUserDto(user);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public UserDto getUserById(Long userId) {
-        return UserMapper.toUserDto(userStorage.getUserById(userId).orElse(null));
+        return UserMapper.toUserDto(userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден.")));
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<UserDto> getAllUsers() {
-        return userStorage.getAllUsers()
+        return userRepository.findAll()
                 .stream()
                 .map(UserMapper::toUserDto)
                 .collect(Collectors.toList());
@@ -62,9 +86,11 @@ public class UserServiceImpl implements UserService {
         if (!emailNull && user.getEmail() == null) {
             throw new ValidationException("Email пользователя не может быть пустым");
         }
+    }
 
-        List<UserDto> usersSameEmail = getAllUsers().stream()
-                .filter(u -> u.getEmail().equals(user.getEmail()) && !Objects.equals(u.getId(), user.getId()))
+    private void checkEmail(User user) {
+        List<User> usersSameEmail = userRepository.findAllByEmail(user.getEmail()).stream()
+                .filter(u -> !Objects.equals(u.getId(), user.getId()))
                 .collect(Collectors.toList());
 
         if (!usersSameEmail.isEmpty()) {

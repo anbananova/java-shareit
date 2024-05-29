@@ -1,6 +1,7 @@
 package ru.practicum.shareit.exceptionhandler;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -26,15 +27,15 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleunexpectedErrorHandle(final Throwable e) {
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleNotFoundException(NotFoundException e) {
         log.error(e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleNotFoundException(NotFoundException e) {
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleConstraintViolationException(ConstraintViolationException e) {
         log.error(e.getMessage());
         return new ErrorResponse(e.getMessage());
     }

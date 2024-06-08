@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
         user.setId(userId);
         checkValidation(user, true);
         checkEmail(user);
-        User userOld = userRepository.findById(userId).orElseThrow();
+        User userOld = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден."));
         if (user.getName() != null) {
             userOld.setName(user.getName());
         }
@@ -52,6 +52,9 @@ public class UserServiceImpl implements UserService {
         }
 
         User userUpd = userRepository.save(userOld);
+        if (userUpd == null) {
+            userUpd = userOld;
+        }
         log.info("Пользователь обновлен в базе данных в таблице users по ID: {} \n {}", userId, userUpd);
         return UserMapper.toUserDto(userUpd);
     }

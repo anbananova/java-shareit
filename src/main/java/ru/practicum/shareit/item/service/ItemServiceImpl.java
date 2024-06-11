@@ -118,6 +118,7 @@ public class ItemServiceImpl implements ItemService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<ItemDto> searchItems(String text, Pageable pageable) {
         if (text == null || text.isEmpty()) {

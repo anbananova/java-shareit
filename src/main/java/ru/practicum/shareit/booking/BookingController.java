@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingDtoPartial;
 import ru.practicum.shareit.booking.service.BookingService;
+import org.springframework.data.domain.PageRequest;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -46,15 +47,23 @@ public class BookingController {
 
     @GetMapping
     public List<BookingDto> getBookings(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                        @RequestParam(defaultValue = "ALL") String state) {
-        log.info("Получен GET запрос на нахождение всех бронирований пользователя: {} в статусе: {}.", userId, state);
-        return bookingService.getAllBookings(userId, state);
+                                        @RequestParam(defaultValue = "ALL") String state,
+                                        @RequestParam(required = false, defaultValue = "0") final Integer from,
+                                        @RequestParam(required = false, defaultValue = "10") final Integer size) {
+        log.info("Получен GET запрос на нахождение всех бронирований пользователя: {} в статусе: {} " +
+                "с параметрами from={} & size= {}.", userId, state, from, size);
+        int page = from > 0 ? from / size : from;
+        return bookingService.getAllBookings(userId, state, PageRequest.of(page, size));
     }
 
     @GetMapping("/owner")
     public List<BookingDto> getBookingsOwner(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                             @RequestParam(defaultValue = "ALL") String state) {
-        log.info("Получен GET запрос на нахождение всех бронирований пользователя: {} в статусе: {}.", userId, state);
-        return bookingService.getAllBookingsOwner(userId, state);
+                                             @RequestParam(defaultValue = "ALL") String state,
+                                             @RequestParam(required = false, defaultValue = "0") final Integer from,
+                                             @RequestParam(required = false, defaultValue = "10") final Integer size) {
+        log.info("Получен GET запрос на нахождение всех бронирований пользователя: {} в статусе: {} " +
+                "с параметрами from={} & size= {}.", userId, state, from, size);
+        int page = from > 0 ? from / size : from;
+        return bookingService.getAllBookingsOwner(userId, state, PageRequest.of(page, size));
     }
 }

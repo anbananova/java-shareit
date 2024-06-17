@@ -40,6 +40,13 @@ public class ErrorHandler {
         return new ErrorResponse(e.getMessage());
     }
 
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleIllegalArgumentException(IllegalArgumentException e) {
+        log.error(e.getMessage());
+        return new ErrorResponse(e.getMessage());
+    }
+
     @ExceptionHandler({UserAlreadyExistException.class, ItemAlreadyExistException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse userExistHandle(final RuntimeException e) {

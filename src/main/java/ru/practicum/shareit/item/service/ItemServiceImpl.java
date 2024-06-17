@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
@@ -14,6 +15,8 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.CommentRepository;
 import ru.practicum.shareit.item.storage.ItemRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.storage.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
 
@@ -30,21 +33,36 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Autowired
     public ItemServiceImpl(ItemRepository itemRepository,
                            UserRepository userRepository,
-                           BookingRepository bookingRepository, CommentRepository commentRepository) {
+                           BookingRepository bookingRepository,
+                           CommentRepository commentRepository,
+                           ItemRequestRepository itemRequestRepository) {
         this.itemRepository = itemRepository;
         this.userRepository = userRepository;
         this.bookingRepository = bookingRepository;
         this.commentRepository = commentRepository;
+        this.itemRequestRepository = itemRequestRepository;
     }
 
     @Transactional
     @Override
-    public ItemDto addItem(Item item, Long userId) {
-        checkValidation(userId, item, true);
+    public ItemDto addItem(ItemDto itemDto, Long userId) {
+        checkValidation(userId, itemDto, true);
+        Item item;
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден."));
+
+        if (itemDto.getRequestId() != null) {
+            ItemRequest itemRequest = itemRequestRepository.findById(itemDto.getRequestId())
+                    .orElseThrow(() -> new NotFoundException("Запрос с id = " + itemDto.getRequestId() + "не найден"));
+
+            item = ItemMapper.toItemWithRequest(itemDto, user, itemRequest);
+        } else {
+            item = ItemMapper.toItem(itemDto, user);
+        }
         item.setOwner(userId);
         Item itemDb = itemRepository.save(item);
         log.info("Вещь добавлена в базу данных в таблицу items по ID: {} \n {}", itemDb.getId(), itemDb);
@@ -92,20 +110,21 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<ItemDtoExtra> getAllItems(Long userId) {
+    public List<ItemDtoExtra> getAllItems(Long userId, Pageable pageable) {
         checkValidation(userId);
-        return itemRepository.findAllByOwner(userId)
+        return itemRepository.findAllByOwner(userId, pageable)
                 .stream()
                 .map(item -> getItemById(item.getId(), userId))
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public List<ItemDto> searchItems(String text) {
+    public List<ItemDto> searchItems(String text, Pageable pageable) {
         if (text == null || text.isEmpty()) {
             return new ArrayList<>();
         } else {
-            return itemRepository.searchItems(text)
+            return itemRepository.searchItems(text, pageable)
                     .stream()
                     .map(ItemMapper::toItemDto)
                     .collect(Collectors.toList());
@@ -113,7 +132,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public void checkValidation(Long userId, Item item, boolean checkEmpty) {
+    public void checkValidation(Long userId, ItemDto item, boolean checkEmpty) {
         if (checkEmpty && ((item.getName() == null || item.getName().isEmpty())
                 || (item.getDescription() == null || item.getDescription().isEmpty())
                 || item.getAvailable() == null)) {

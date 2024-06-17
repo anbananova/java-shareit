@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking.storage;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -18,18 +19,27 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "where i.id = ?1 and u.id = ?2 " +
             "and b.status = ?3 " +
             "and b.end < current_timestamp")
+    List<Booking> findAllByItemIdAndBookerId(Long itemId, Long userId, BookingStatus status, Pageable pageable);
+
+    @Query("select b " +
+            "from Booking as b " +
+            "join b.item as i " +
+            "join b.booker as u " +
+            "where i.id = ?1 and u.id = ?2 " +
+            "and b.status = ?3 " +
+            "and b.end < current_timestamp")
     List<Booking> findAllByItemIdAndBookerId(Long itemId, Long userId, BookingStatus status);
 
-    List<Booking> findAllByBookerIdOrderByStartDesc(Long userId);
+    List<Booking> findAllByBookerIdOrderByStartDesc(Long userId, Pageable pageable);
 
-    List<Booking> findAllByBookerIdAndStatusOrderByStartDesc(Long userId, BookingStatus status);
+    List<Booking> findAllByBookerIdAndStatusOrderByStartDesc(Long userId, BookingStatus status, Pageable pageable);
 
     @Query("select b " +
             "from Booking as b " +
             "join b.item as i " +
             "where i.owner = ?1 " +
             "order by b.start desc")
-    List<Booking> findAllByOwnerIdOrderByStartDesc(Long userId);
+    List<Booking> findAllByOwnerIdOrderByStartDesc(Long userId, Pageable pageable);
 
 
     @Query("select b " +
@@ -44,7 +54,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "where i.owner = ?1 " +
             "and b.status = ?2 " +
             "order by b.start desc")
-    List<Booking> findAllByOwnerIdAndStatusOrderByStartDesc(Long userId, BookingStatus status);
+    List<Booking> findAllByOwnerIdAndStatusOrderByStartDesc(Long userId, BookingStatus status, Pageable pageable);
 
     @Modifying
     @Query("update Booking b " +

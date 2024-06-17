@@ -2,6 +2,7 @@ package ru.practicum.shareit.item;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.CommentDtoPartial;
@@ -25,7 +26,7 @@ public class ItemController {
     }
 
     @PostMapping
-    public ItemDto addItem(@Valid @RequestBody Item item,
+    public ItemDto addItem(@Valid @RequestBody ItemDto item,
                            @RequestHeader("X-Sharer-User-Id") Long userId) {
         log.info("Получен POST запрос на добавление новой вещи: {}, пользователем: {}", item, userId);
         return itemService.addItem(item, userId);
@@ -48,15 +49,23 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemDtoExtra> getItems(@RequestHeader("X-Sharer-User-Id") Long userId) {
-        log.info("Получен GET запрос на нахождение всех вещей пользователя: {}.", userId);
-        return itemService.getAllItems(userId);
+    public List<ItemDtoExtra> getItems(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                       @RequestParam(required = false, defaultValue = "0") final Integer from,
+                                       @RequestParam(required = false, defaultValue = "10") final Integer size) {
+        log.info("Получен GET запрос на нахождение всех вещей пользователя: {} с параметрами from={} & size= {}.",
+                userId, from, size);
+        int page = from > 0 ? from / size : from;
+        return itemService.getAllItems(userId, PageRequest.of(page, size));
     }
 
     @GetMapping("/search")
-    public List<ItemDto> searchItems(@RequestParam(defaultValue = "") String text) {
-        log.info("Получен GET запрос на поиск всех вещей с текстом: {}.", text);
-        return itemService.searchItems(text);
+    public List<ItemDto> searchItems(@RequestParam(defaultValue = "") String text,
+                                     @RequestParam(required = false, defaultValue = "0") final Integer from,
+                                     @RequestParam(required = false, defaultValue = "10") final Integer size) {
+        log.info("Получен GET запрос на поиск всех вещей с текстом: {} с параметрами from={} & size= {}.",
+                text, from, size);
+        int page = from > 0 ? from / size : from;
+        return itemService.searchItems(text, PageRequest.of(page, size));
     }
 
     @PostMapping("/{itemId}/comment")

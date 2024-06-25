@@ -75,6 +75,10 @@ public class ItemServiceImpl implements ItemService {
         userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден."));
 
         List<Booking> bookings = bookingRepository.findAllByItemIdAndOwnerId(itemId, userId);
+        log.info("getItemById: for item {} all bookings: {}", itemId, bookings);
+
+        LocalDateTime now = LocalDateTime.now();
+        log.info("getItemById: now: {}", now);
 
         Booking nextBooking;
         Booking lastBooking;
@@ -84,6 +88,19 @@ public class ItemServiceImpl implements ItemService {
         } else {
             nextBooking = getNextBooking(bookings);
             lastBooking = getLastBooking(bookings);
+        }
+
+        if (lastBooking != null) {
+            log.info("getItemById: last booking id: {}; start: {}; last booking end: {}",
+                    lastBooking.getId(), lastBooking.getStart(), lastBooking.getEnd());
+        } else {
+            log.info("getItemById: last booking null");
+        }
+        if (nextBooking != null) {
+            log.info("getItemById: next booking id: {}; start: {}; next booking end: {}",
+                    nextBooking.getId(), nextBooking.getStart(), nextBooking.getEnd());
+        } else {
+            log.info("getItemById: next booking null");
         }
 
         List<Comment> comments = commentRepository.findAllByItemId(itemId);
@@ -122,6 +139,7 @@ public class ItemServiceImpl implements ItemService {
         return itemRepository.findAllByOwner(userId, pageable)
                 .stream()
                 .map(item -> getItemById(item.getId(), userId))
+                .sorted(Comparator.comparing(ItemDtoExtra::getId))
                 .collect(Collectors.toList());
     }
 

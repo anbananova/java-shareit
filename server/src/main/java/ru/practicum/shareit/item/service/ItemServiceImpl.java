@@ -76,8 +76,15 @@ public class ItemServiceImpl implements ItemService {
 
         List<Booking> bookings = bookingRepository.findAllByItemIdAndOwnerId(itemId, userId);
 
-        Booking nextBooking = getNextBooking(bookings);
-        Booking lastBooking = getLastBooking(bookings);
+        Booking nextBooking;
+        Booking lastBooking;
+        if (bookings.size() == 1) {
+            nextBooking = null;
+            lastBooking = getNextBooking(bookings);
+        } else {
+            nextBooking = getNextBooking(bookings);
+            lastBooking = getLastBooking(bookings);
+        }
 
         List<Comment> comments = commentRepository.findAllByItemId(itemId);
         List<CommentDto> commentsDto = comments.stream()
@@ -178,7 +185,8 @@ public class ItemServiceImpl implements ItemService {
         return bookings.stream()
                 .filter(booking -> booking.getStatus().equals(BookingStatus.APPROVED))
                 .sorted(Comparator.comparing(Booking::getEnd))
-                .filter(booking -> booking.getStart().isAfter(LocalDateTime.now()) && booking.getEnd().isAfter(LocalDateTime.now()))
+                .filter(booking -> booking.getStart().isAfter(LocalDateTime.now()) && booking.getEnd().isAfter(LocalDateTime.now())
+                        || (LocalDateTime.now().isAfter(booking.getStart()) && LocalDateTime.now().isBefore(booking.getEnd())))
                 .findFirst()
                 .orElse(null);
     }

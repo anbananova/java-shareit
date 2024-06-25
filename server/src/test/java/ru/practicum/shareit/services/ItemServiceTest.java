@@ -229,13 +229,13 @@ public class ItemServiceTest {
                 .thenReturn(Optional.of(user));
 
         ItemDtoExtra result = itemService.getItemById(1L, 1L);
-        ItemDtoExtra expected = ItemMapper.toItemDto(item, booking, null, List.of(CommentMapper.toCommentDto(comment)));
+        ItemDtoExtra expected = ItemMapper.toItemDto(item, null, booking, List.of(CommentMapper.toCommentDto(comment)));
 
         assertThat(result).isNotNull();
         assertThat(result).isEqualTo(expected);
 
-        assertThat(result.getNextBooking()).isNotNull();
-        assertThat(result.getLastBooking()).isNull();
+        assertThat(result.getNextBooking()).isNull();
+        assertThat(result.getLastBooking()).isNotNull();
 
         assertThat(result.getComments()).hasSize(1);
         assertThat(result.getComments().get(0).getId()).isEqualTo(comment.getId());
@@ -362,14 +362,14 @@ public class ItemServiceTest {
         List<ItemDtoExtra> result = itemService.getAllItems(user.getId(), null);
         ItemDtoExtra resultItemDTO = result.get(0);
 
-        ItemDtoExtra expected = ItemMapper.toItemDto(item, booking, null, List.of(CommentMapper.toCommentDto(comment)));
+        ItemDtoExtra expected = ItemMapper.toItemDto(item, null, booking, List.of(CommentMapper.toCommentDto(comment)));
 
         assertThat(result).isNotNull();
         assertThat(result).hasSize(1);
         assertThat(resultItemDTO).isEqualTo(expected);
 
-        assertThat(resultItemDTO.getNextBooking()).isNotNull();
-        assertThat(resultItemDTO.getLastBooking()).isNull();
+        assertThat(resultItemDTO.getNextBooking()).isNull();
+        assertThat(resultItemDTO.getLastBooking()).isNotNull();
         assertThat(resultItemDTO.getComments()).hasSize(1);
         assertThat(resultItemDTO.getComments().get(0).getId()).isEqualTo(comment.getId());
         assertThat(resultItemDTO.getComments().get(0).getText()).isEqualTo(comment.getText());

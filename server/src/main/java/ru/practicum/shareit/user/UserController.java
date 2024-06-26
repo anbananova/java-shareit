@@ -14,7 +14,6 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/users")
 @Slf4j
-@Validated
 public class UserController {
     private final UserService userService;
 
